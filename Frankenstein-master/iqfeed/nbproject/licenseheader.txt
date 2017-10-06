@@ -1,0 +1,8 @@
+<#if licenseFirst??>
+${licenseFirst}
+</#if>
+${licensePrefix}IQFeed Java Examples
+${licensePrefix}Date{licensePrefix}
+<#if licenseLast??>
+${licenseLast}
+</#if>

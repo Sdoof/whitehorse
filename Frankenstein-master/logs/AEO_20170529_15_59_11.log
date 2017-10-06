@@ -1,0 +1,5 @@
+return data: last bar 2017-05-29 16:00:00 last processed bar 1000-01-01 00:00:00
+AEO: Warning! 596 bars requested 86 bars returned.
+start_idx [(2, Timestamp('2017-05-26 09:35:00'))]
+start_ema 2017-05-26 15:10:00 data.dropna() feed returned insufficient data
+Elapsed time:  0.08  minutes  2017-05-29 16:00:33.149000

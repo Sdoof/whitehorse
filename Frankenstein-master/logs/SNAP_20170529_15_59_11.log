@@ -1,0 +1,5 @@
+return data: last bar 2017-05-29 15:55:00 last processed bar 1000-01-01 00:00:00
+SNAP: Warning! 596 bars requested 149 bars returned.
+start_idx [(37, Timestamp('2017-05-26 09:35:00'))]
+start_ema 2017-05-26 08:00:00 start_vwap 2017-05-26 09:35:00 last_bar 2017-05-26 20:00:00 ET:  0.07  minutes
+Elapsed time:  0.07  minutes  2017-05-29 16:00:00.108000

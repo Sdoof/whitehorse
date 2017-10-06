@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+encoding//scripts/cleanse_import_dji.py=utf-8
+encoding//scripts/cleanse_import_nasdaq.py=utf-8
+encoding//scripts/cleanse_import_sp.py=utf-8
+encoding//scripts/import_ibsyms.py=utf-8
+encoding//scripts/spark/company.py=utf-8

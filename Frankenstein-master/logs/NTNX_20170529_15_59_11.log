@@ -1,0 +1,5 @@
+return data: last bar 2017-05-29 16:00:00 last processed bar 1000-01-01 00:00:00
+NTNX: Warning! 596 bars requested 143 bars returned.
+start_idx [(39, Timestamp('2017-05-26 09:35:00'))]
+start_ema 2017-05-26 08:00:00 start_vwap 2017-05-26 09:35:00 last_bar 2017-05-26 19:55:00 ET:  0.05  minutes
+Elapsed time:  0.05  minutes  2017-05-29 16:00:31.743000

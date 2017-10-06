@@ -1,0 +1,17 @@
+https://github.com/hasakura511/Frankenstein.git
+
+make sure stocks.csv is properly formatted
+symbols all capitalized, no duplicates
+
+syntax is
+python frankenstein.py symbol size broker
+where size is the USD amount of stock to buy
+for example: python frankenstein.py TSLA 250 c2
+"Run frankenstein on TSLA with $250 worth of stock route to c2"
+
+leave the broker out to debug. this will create signal files for the last day and terminate.
+python frankenstein.py symbol size
+for example: python frankenstein.py ZAGG 5000
+
+it will create livesignals files in the data folder
+you can check them for debugging

@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "./frankenstein.py", line 510, in <module>
+    frank.runlive()
+  File "./frankenstein.py", line 447, in runlive
+    self.check()
+  File "./frankenstein.py", line 250, in check
+    slack.notify(text=txt, channel=slack_channel, username="frankenstein", icon_emoji=":rage:")
+  File "e:\anaconda2\lib\site-packages\slackweb\slackweb.py", line 26, in notify
+    return self.send(kwargs)
+  File "e:\anaconda2\lib\site-packages\slackweb\slackweb.py", line 35, in send
+    response = self.opener.open(req, data.encode('utf-8')).read()
+  File "e:\anaconda2\lib\urllib2.py", line 435, in open
+    response = meth(req, response)
+  File "e:\anaconda2\lib\urllib2.py", line 548, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "e:\anaconda2\lib\urllib2.py", line 473, in error
+    return self._call_chain(*args)
+  File "e:\anaconda2\lib\urllib2.py", line 407, in _call_chain
+    result = func(*args)
+  File "e:\anaconda2\lib\urllib2.py", line 556, in http_error_default
+    raise HTTPError(req.get_full_url(), code, msg, hdrs, fp)
+urllib2.HTTPError: HTTP Error 429: Too Many Requests
