@@ -69,7 +69,7 @@ from elasticsearch_dsl import Search, Q
 myindex='beginning'
 connections.configure(
     default={
-        'hosts': ['localhost:9200']
+        'hosts': ['localhost:9201']
     }
 )
 
