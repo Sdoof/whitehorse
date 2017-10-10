@@ -5,7 +5,6 @@ import os
 import datetime
 import csv
 import threading
-
 """
 Created on Tue Mar 08 20:10:29 2016
 3 mins - 2150 dp per request

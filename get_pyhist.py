@@ -24,6 +24,8 @@ import pyelasticsearch
 from pyelasticsearch import bulk_chunks
 es = pyelasticsearch.ElasticSearch(port=9201)
 eastern=timezone('US/Eastern')
+import csv
+import sys
 
 
 def get_hist(symbol, interval, maxdatapoints,datadirection=0,requestid='',datapointspersend='',intervaltype=''):
@@ -197,9 +199,6 @@ def get_historical_bar_to_db(ticker: str, bar_len: int, bar_unit: str,
                                               interval_len=bar_len,
                                               interval_type=bar_unit,
                                               max_bars=num_bars)
-                
-                print(bars)
-                print("Last Bar Received")
                 '''
                 today = datetime.now()
                 start_date = today - relativedelta(days=10)
@@ -220,22 +219,28 @@ def get_historical_bar_to_db(ticker: str, bar_len: int, bar_unit: str,
                                                         interval_type=bar_unit,
                                                         bgn_prd=start_time,
                                                         end_prd=end_time)
-                '''
                 print(bars)
+                '''
                 for bar in bars:
-                    print(bar)
-                    print(bar[0])
                     date=parse(str(bar[0]))
+                    timestamp=int(re.sub('\D','',str(bar[1])))
+                    sec=timestamp / 1000000
+                    min  = int(sec % 3600 / 60)
+                    hour = int(sec/3600)
+                    sec = int(sec - hour * 3600 - min *60)
+                    date=datetime(date.year, date.month, date.day, hour, min, sec)
+                    #print (ticker, date)
                     frequency=bar_len
                     feed={  'instrument_id':instrument.id,
                                                 'frequency' : frequency,
                                                 'date': date,
-                                                'open': float(bar[2]),
-                                                'high': float(bar[3]),
-                                                'low': float(bar[4]),
+                                                'high': float(bar[2]),
+                                                'low': float(bar[3]),
+                                                'open': float(bar[4]),
                                                 'close': float(bar[5]),
                                                 'volume': float(bar[6])
                                             }
+                    print (ticker, date, timestamp, feed)
                     bar_list=Feed.search().filter('term',date=date).filter('term',instrument_id=instrument.id).filter('term',frequency=frequency)
                     if bar_list and bar_list.count() > 0:
                                 pass #print  'update', symbol
@@ -248,7 +253,9 @@ def get_historical_bar_to_db(ticker: str, bar_len: int, bar_unit: str,
                     else:
                         pass #print  'insert', symbol
                         yield es.index_op(feed)
-                print(bars)
+                #print(bars)
+                print (len(bars))
+                print("Last Bar Received")
 
             except (iq.NoDataError, iq.UnauthorizedError) as err:
                 print("No data returned because {0}".format(err))
@@ -260,6 +267,7 @@ def get_historical_bar_to_db(ticker: str, bar_len: int, bar_unit: str,
                             # We specify a default index and doc type here so we don't
                             # have to repeat them in every operation:
                             es.bulk(chunk, doc_type='feed', index='beginning')                                
+'''
 get_historical_bar_data(ticker="SPY",
                         bar_len=300,
                         bar_unit='s',
@@ -269,4 +277,29 @@ get_historical_bar_to_db(ticker="SPY",
                         bar_len=300,
                         bar_unit='s',
                         num_bars=100)
-
+'''
+if __name__ == "__main__":
+    interval=300
+    minDataPoints=100
+    if len(sys.argv) > 2:
+        interval=int(sys.argv[1])
+        minDataPoints = int(sys.argv[2])
+        
+    if len(sys.argv) > 3:
+        sym=str(sys.argv[3])
+        get_historical_bar_to_db(ticker=sym,
+                            bar_len=interval,
+                            bar_unit='s',
+                            num_bars=minDataPoints)
+        
+    else:
+        with open("./stocks.csv", newline='') as f:
+                    reader = csv.reader(f, delimiter=',')
+                    rownum=0
+                    for row in reader:
+                        if row[0] != 'symbols':
+                            sym=row[0]
+                            get_historical_bar_to_db(ticker=sym,
+                                bar_len=interval,
+                                bar_unit='s',
+                                num_bars=minDataPoints)

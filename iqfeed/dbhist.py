@@ -102,13 +102,16 @@ def get_hist(symbol, interval, maxdatapoints,datadirection=0,requestid='',datapo
     for feed in feed_list:
         #feed.date=eastern.localize(feed.date,is_dst=True)
         date=datetime(feed.date.year,feed.date.month,feed.date.day,feed.date.hour,feed.date.minute,feed.date.second)
-        quote={ 'Date':date,
+        now = datetime.now().strftime('%Y%m%d %H:%M:%S %f')
+        quote={ 'Date':datetime(feed.date.year,feed.date.month,feed.date.day,feed.date.hour,feed.date.minute,feed.date.second),
+                                'timestamp':now,
                                 'Open':feed.open,
                                 'High':feed.high,
                                 'Low':feed.low,
                                 'Close':feed.close,
                                 'Volume':feed.volume
                             }
+        print (date)
         if date <= datetime.now():
             res.append(quote)
     data = json_normalize(res)
@@ -123,6 +126,7 @@ def get_realtime_hist(symbol, interval, maxdatapoints,datadirection=0,requestid=
     global ohlc
     
     symbol=symbol.upper()
+    print (symbol)
     instrument_list=Instrument.search().filter('term',**{'sym.raw':symbol}).execute()
     if instrument_list and len(instrument_list) > 0:
         instrument=instrument_list[0]
@@ -131,10 +135,8 @@ def get_realtime_hist(symbol, interval, maxdatapoints,datadirection=0,requestid=
         instrument=Instrument()
         instrument.sym=symbol
         instrument.save()
-    
-    bg_get_hist(instrument, symbol, interval, maxdatapoints,datadirection,requestid,datapointspersend,intervaltype)
-    
-    
+    print (instrument.id)
+    #bg_get_hist(instrument, symbol, interval, maxdatapoints,datadirection,requestid,datapointspersend,intervaltype)
     from pandas.io.json import json_normalize
     
     feed_list=Feed.search().filter('term',frequency=interval).filter('term',instrument_id=instrument.id).sort('-date')
@@ -143,13 +145,16 @@ def get_realtime_hist(symbol, interval, maxdatapoints,datadirection=0,requestid=
     for feed in feed_list:
         #feed.date=eastern.localize(feed.date,is_dst=True)
         date=datetime(feed.date.year,feed.date.month,feed.date.day,feed.date.hour,feed.date.minute,feed.date.second)
+        now = datetime.now().strftime('%Y%m%d %H:%M:%S %f')
         quote={ 'Date':datetime(feed.date.year,feed.date.month,feed.date.day,feed.date.hour,feed.date.minute,feed.date.second),
-                               'Open':feed.open,
+                                'timestamp':now,
+                                'Open':feed.open,
                                 'High':feed.high,
                                 'Low':feed.low,
                                 'Close':feed.close,
                                 'Volume':feed.volume
                             }
+        print (date)
         if date <= datetime.now():
             res.append(quote)
     data = json_normalize(res)

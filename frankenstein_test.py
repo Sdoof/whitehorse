@@ -13,7 +13,7 @@ from os import listdir
 from os.path import isfile, join
 import datetime
 from datetime import datetime as dt
-import scripts.iqfeed.dbhist as dbhist
+import iqfeed.dbhist as dbhist
 
 import slackweb
 fulltimestamp=datetime.datetime.now().strftime('%Y%m%d_%H_%M_%S')
@@ -67,16 +67,16 @@ def getFeed(symbol, lookback, interval):
         data.to_csv(dataPath+symbol+'_hist.csv')
         #print data
         if data.shape[0]<1 or data.index[-1] <= lastDate:
-            print 'return None: last bar', data.index[-1], 'last processed bar', lastDate
+            print ('return None: last bar', data.index[-1], 'last processed bar', lastDate)
             return None
         else:
-            print 'return data: last bar', data.index[-1], 'last processed bar', lastDate
+            print ('return data: last bar', data.index[-1], 'last processed bar', lastDate)
             lastDate = data.index[-1]
             data=data[data.Volume != 0]
-            return data[['Open','High','Low','Close','Volume']]
+            return data; #[['Open','High','Low','Close','Volume']]
         
     except Exception as e:
-        print e
+        print (e)
         txt="Feed error: "+str(e)+"\n"
         txt+=symbol+" lb"+str(lookback)+" i"+str(interval)
         slack.notify(text=txt, channel=slack_channel, username="frankenstein", icon_emoji=":rage:")
@@ -90,7 +90,7 @@ def getFeedHistory(symbol, maxlookback, interval):
     historylength = maxlookback * 2
 
     data = dbhist.get_realtime_hist(symbol, interval, historylength).sort_index(ascending=True)
-    print data
+    print (data)
 
     filename = dataPath + symbol + '_signals.csv'
     if isfile(filename):
@@ -144,7 +144,7 @@ def place_order(action, quant, sym, parentsig=None):
     params = {}
     r = requests.post(url, params=params, json=data);
     # sleep(2)
-    print r.text
+    print (r.text)
     # logging.info(str(r.text))
     return r.json()['signalid']
 
@@ -182,7 +182,7 @@ def setDesiredPositions(orders):
     params = {}
     r = requests.post(url, params=params, json=data);
     # sleep(2)
-    print r.text
+    print (r.text)
     slack.notify(text=r.text, channel="#logs", username="frankenstein", icon_emoji=":robot_face:")
     # logging.info(str(r.text))
     #return r.json()['signalid']
@@ -246,13 +246,13 @@ class Frankenstein():
                 
                 if lastbar is None:
                     #print 'new bar not ready'
-                    print 2,'bars requested None returned'
+                    print (2,'bars requested None returned')
                     txt = self.symbol + ' getFeed did not return any data! last bar: '+str(lastDate)+' now: '+str(dt.now().time())
-                    print txt
+                    print (txt)
                     slack.notify(text=txt, channel=slack_channel, username="frankenstein", icon_emoji=":rage:")
                     return
                 else:
-                    print 2,'bars requested', lastbar.shape[0], 'bars returned'
+                    print (2,'bars requested', lastbar.shape[0], 'bars returned')
                     data = self.signals.append(lastbar.iloc[-1]).copy()
             else:
                 data = getFeed(self.symbol, self.maxlookback, self.interval)
@@ -261,11 +261,11 @@ class Frankenstein():
             if data is None:
                 #print 'new bar not ready'
                 txt = self.symbol + ' getFeed did not return any data! last bar: '+str(lastDate)+' now: '+str(dt.now().time())
-                print txt
+                print (txt)
                 slack.notify(text=txt, channel=slack_channel, username="frankenstein", icon_emoji=":rage:")
                 return
             else:
-                print self.maxlookback,'bars requested', data.shape[0], 'bars returned'
+                print (self.maxlookback,'bars requested', data.shape[0], 'bars returned')
                 if self.broker == None:
                     start_idx = [(i, date) for i, date in enumerate(data.index) \
                                  if date.minute == 35 and date.hour == 9]
@@ -281,15 +281,16 @@ class Frankenstein():
         # print start_idx
         if len(start_idx) == 0:
             txt= self.symbol+' '+self.mode+' '+'data feed missing 9:35 bar!'
-            print txt
+            print (txt)
             if self.mode == 'live':
                 slack.notify(text=txt, channel=slack_channel, username="frankenstein", icon_emoji=":rage:")
         else:
-            print 'start_idx', start_idx
+            print ('start_idx', start_idx)
             start_ema = start_idx[1][0] - self.max_emalookback
 
             data = data.iloc[start_ema + 1:]
-            print 'start_ema', data.iloc[0].name,
+            
+            print ('start_ema', data.iloc[0].name,)
             EMA1 = 'EMA' + str(self.ema_lookback)
             EMA2 = 'EMA' + str(self.ema_lookback2)
             
@@ -305,7 +306,7 @@ class Frankenstein():
             data[EMA1 + 'X' + EMA2] = np.where(data[EMA1] > data[EMA2], 1, 0)
             data.to_csv(dataPath+self.symbol+'_debug.csv')
             if len(data.dropna())<1:
-                print 'data.dropna() feed returned insufficient data. check debug file'
+                print ('data.dropna() feed returned insufficient data. check debug file')
                 
                 txt = self.symbol + ' feed returned insufficient data! check debug file.'
                 slack.notify(text=txt, channel=slack_channel, username="frankenstein", icon_emoji=":rage:")
@@ -321,8 +322,8 @@ class Frankenstein():
             data[EMA1 + '>' + EMA2] = np.where(data[EMA1] > data[EMA2], 1, 0)
             data[EMA1 + 'X' + EMA2] = findCrosses(data[EMA1 + '>' + EMA2])
 
-            print 'start_vwap', data.iloc[0].name,
-            print 'last_bar', data.iloc[-1].name,
+            print ('start_vwap', data.iloc[0].name,)
+            print ('last_bar', data.iloc[-1].name,)
             data['VP'] = (data.High + data.Low + data.Close) / 3 * data.Volume
             data['TotalVP'] = data.VP.cumsum()
             data['TotalVolume'] = data.Volume.cumsum()
@@ -368,7 +369,6 @@ class Frankenstein():
                 else:
                     data.iloc[-1].QTY = self.lastqty
             '''
-            data['timestamp'] = dt.now().strftime('%Y%m%d %H:%M:%S')
             self.lastdata = data
             self.lastbar = data.iloc[-1]
 
@@ -380,7 +380,7 @@ class Frankenstein():
                 positions = [x for x in listdir(portfolioPath) if x[-4:] == 'json']
                 if self.broker is not None and self.previousqty != self.lastqty\
                         and len(positions)<self.max_symbols:
-                    print self.lastbar
+                    print (self.lastbar)
                     self.transmit()
                 else:
                     if self.mode=='live':
@@ -392,7 +392,7 @@ class Frankenstein():
                 if self.mode=='live':
                     self.signals.to_csv(self.signal_filename, index=True)
                     self.lastdata.to_csv(dataPath + self.symbol + '_last.csv')
-                    print 'Writing to', self.signal_filename, dataPath + self.symbol + '_last.csv'
+                    print ('Writing to', self.signal_filename, dataPath + self.symbol + '_last.csv')
             else:
 
                 self.signals = data.copy()
@@ -400,7 +400,7 @@ class Frankenstein():
                 self.lastqty = int(self.lastbar.QTY)
                 self.lastdata.to_csv(dataPath + self.symbol + '_last.csv')
 
-        print 'ET: ', round(((time.time() - check_time) / 60), 2), ' minutes'
+        print ('ET: ', round(((time.time() - check_time) / 60), 2), ' minutes')
 
     def transmit(self):
         order = {
@@ -409,12 +409,12 @@ class Frankenstein():
             "quant"			: self.lastqty
             #"quant"		: "-100"
         }
-        print 'Signal Found! Transmitting order:', order
+        print ('Signal Found! Transmitting order:', order)
         txt = "Transmitting...\n"+str(order)+"\n" + str(dt.now())
         slack.notify(text=txt, channel=slack_channel, username="frankenstein", icon_emoji=":money_mouth_face:")
         with open(self.portfolio_filename, 'w') as f:
             json.dump(order, f)
-            print 'Saved', self.portfolio_filename
+            print ('Saved', self.portfolio_filename)
         orders=[]
         positions = [x for x in listdir(portfolioPath) if x[-4:] == 'json']
         for position in positions:
@@ -423,10 +423,10 @@ class Frankenstein():
                 order = json.load(f)
             orders.append(order)
         setDesiredPositions(orders)
-        print 'sent signal to broker'
+        print ('sent signal to broker')
 
     def close_position(self):
-        print 'Closing', self.symbol, self.lastqty
+        print ('Closing', self.symbol, self.lastqty)
         self.lastqty=0
         self.transmit()
 
@@ -444,11 +444,11 @@ class Frankenstein():
             try:
                 self.check()
             except StopIteration:
-                print 'EOF'
+                print ('EOF')
                 break
         self.signals.to_csv(self.signal_filename, index=True)
         self.lastdata.to_csv(dataPath + self.symbol + '_last.csv')
-        print 'Wrote to', self.signal_filename, dataPath + self.symbol + '_last.csv'
+        print( 'Wrote to', self.signal_filename, dataPath + self.symbol + '_last.csv')
 
     def runlive(self):
         self.check()
@@ -463,7 +463,7 @@ class Frankenstein():
 
             time.sleep(timeleft)
 
-            print 'now', dt.now(),
+            print ('now', dt.now(),)
             if self.marketopen() and not dt.now().time()>self.shutdown_time:
                 self.check()
             else:
@@ -481,6 +481,8 @@ class Frankenstein():
 
 
 if __name__ == "__main__":
+
+    from get_pyhist import get_historical_bar_to_db
     start_time = time.time()
     if len(sys.argv) == 1:
         # filename = '5m_#TeslaMotor.csv'
@@ -492,6 +494,10 @@ if __name__ == "__main__":
         mode = 'live'
         symbol = sys.argv[1]
         size = int(sys.argv[2])
+        get_historical_bar_to_db(ticker=symbol,
+                            bar_len=300,
+                            bar_unit='s',
+                            num_bars=1000)
         if len(sys.argv) > 3:
             broker = sys.argv[3]
             frank = Frankenstein(symbol, mode, size, broker=broker)
@@ -501,4 +507,4 @@ if __name__ == "__main__":
         frank.runlive()
 
     # frank.run()
-    print 'Elapsed time: ', round(((time.time() - start_time) / 60), 2), ' minutes ', dt.now()
+    print ('Elapsed time: ', round(((time.time() - start_time) / 60), 2), ' minutes ', dt.now())
